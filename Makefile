@@ -1,4 +1,4 @@
-BIN = gradient
+BIN = pnt-lut
 SRCS = $(wildcard *.c)
 
 CFLAGS += -Wall -Wextra -Werror -pedantic -std=gnu99 -g
