@@ -23,6 +23,19 @@
 #define PGM_H 480
 #define PGM_SIZE ((PGM_W) * (PGM_H)) + 15
 
+int better_read(int fd, void *buf, int amount) {
+  int amt_read = 0;
+  int last_read = 0;
+  char *charbuf = (char *)buf;
+
+  while (amt_read < amount) {
+    last_read = read(fd, charbuf + amt_read, amount - amt_read);
+    amt_read += last_read;
+  }
+
+  return amt_read;
+}
+
 int main(int ac, char *av[]) {
   assert(ac == 3 && "usage: ./gradient $PGM_FIFO $PNT_FIFO");
 
@@ -37,13 +50,10 @@ int main(int ac, char *av[]) {
     // parent process
     mkfifo(pgm_fifo, 0666);
     const int fd = open(pgm_fifo, O_RDONLY);
-    // note that if size > /proc/sys/fs/pipe-max-size, then requires root
-    // access!
-    fcntl(fd, F_SETPIPE_SZ, PGM_SIZE);
     for (;;) {
-      while (read(fd, global, PGM_SIZE) != PGM_SIZE) {
-      }
-      syslog(LOG_INFO, "read PGM");
+      int len_read;
+      len_read = better_read(fd, global, PGM_SIZE);
+      syslog(LOG_INFO, "read PGM %d", len_read);
     }
     close(fd);
     syslog(LOG_INFO, "parent: unreachable!\n");
