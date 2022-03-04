@@ -43,10 +43,10 @@ int main(int ac, char *av[]) {
     for (;;) {
       while (read(fd, global, PGM_SIZE) != PGM_SIZE) {
       }
-      printf("read PGM\n");
+      syslog(LOG_INFO, "read PGM");
     }
     close(fd);
-    printf("parent: unreachable!\n");
+    syslog(LOG_INFO, "parent: unreachable!\n");
   } else {
     // child process
     mkfifo(pnt_fifo, 0666);
@@ -63,7 +63,7 @@ int main(int ac, char *av[]) {
       uint8_t x = pnt[0], y = pnt[1];
       printf("%d\n", global[15 + y * PGM_W + x]);
     }
-    printf("child: unreachable!\n");
+    syslog(LOG_INFO, "child: unreachable!\n");
     close(fd);
   }
 
