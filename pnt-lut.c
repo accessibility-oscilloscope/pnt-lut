@@ -53,7 +53,9 @@ int main(int ac, char *av[]) {
     const int fd = open(pnt_fifo, O_RDONLY);
     uint8_t pnt[2];
     for (;;) {
-      read(fd, pnt, sizeof(pnt));
+      const int rv = read(fd, pnt, sizeof(pnt));
+      if (rv != sizeof(pnt))
+        continue;
 
       // offset 15
       // + row size * number of rows (y)
