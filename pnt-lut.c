@@ -37,10 +37,11 @@ int better_read(int fd, void *buf, int amount) {
 }
 
 int main(int ac, char *av[]) {
-  assert(ac == 3 && "usage: ./gradient $PGM_FIFO $PNT_FIFO");
+  assert(ac == 4 && "usage: ./gradient $PGM_FIFO $PNT_FIFO $OUTPUT_FIFO");
 
   const char *pgm_fifo = av[1];
   const char *pnt_fifo = av[2];
+  const char *output_fifo = av[3];
 
   uint8_t *global = mmap(NULL, PGM_SIZE, PROT_READ | PROT_WRITE,
                          MAP_SHARED | MAP_ANONYMOUS, -1, 0);
@@ -71,7 +72,13 @@ int main(int ac, char *av[]) {
       // + row size * number of rows (y)
       // + distance into row (x)
       uint8_t x = pnt[0], y = pnt[1];
-      printf("%d\n", global[15 + y * PGM_W + x]);
+      // printf("0", global[15 + y * PGM_W + x]);
+
+      uint8_t output[2];
+      output[0] = 0;
+      output[1] = global[15 + y * PGM_W + x];
+      const int fd_out = open(output_fifo, O_WRONLY);
+      write(fd_out, output, 2);
     }
     syslog(LOG_INFO, "child: unreachable!\n");
     close(fd);
