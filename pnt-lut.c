@@ -60,10 +60,10 @@ int main(int ac, char *av[]) {
   } else {
     // child process
     mkfifo(pnt_fifo, 0666);
-    const int fd = open(pnt_fifo, O_RDONLY);
-    uint8_t pnt[2];
+    const FILE *fd = fopen(pnt_fifo, "ro");
     for (;;) {
-      const int rv = read(fd, pnt, sizeof(pnt));
+      char xbuf[10], ybuf[10];
+      const int rv = getline(fd, &linebuf, sizeof(pnt));
       if (rv != sizeof(pnt))
         continue;
 
