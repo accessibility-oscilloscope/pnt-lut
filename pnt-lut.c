@@ -61,6 +61,7 @@ int main(int ac, char *av[]) {
     // child process
     mkfifo(pnt_fifo, 0666);
     const int fd = open(pnt_fifo, O_RDONLY);
+    const int fd_out = open(output_fifo, O_WRONLY);
     uint8_t pnt[2];
     for (;;) {
       const int rv = read(fd, pnt, sizeof(pnt));
@@ -76,11 +77,11 @@ int main(int ac, char *av[]) {
       uint8_t output[2];
       output[0] = 0;
       output[1] = global[15 + y * PGM_W + x];
-      const int fd_out = open(output_fifo, O_WRONLY);
       write(fd_out, output, 2);
     }
     syslog(LOG_INFO, "child: unreachable!\n");
     close(fd);
+    close(fd_out);
   }
 
   munmap(global, sizeof(*global));
