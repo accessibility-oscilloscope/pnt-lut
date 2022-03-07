@@ -36,7 +36,7 @@ int better_read(int fd, void *buf, int amount) {
 }
 
 int main(int ac, char *av[]) {
-  assert(ac == 4 && "usage: ./gradient $PGM_FIFO $PNT_FIFO $OUTPUT_FIFO");
+  assert(ac == 4 && "usage: ./pnt-lut $PGM_FIFO $PNT_FIFO $OUTPUT_FIFO");
 
   const char *pgm_fifo = av[1];
   const char *pnt_fifo = av[2];
