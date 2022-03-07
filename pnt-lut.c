@@ -68,15 +68,15 @@ int main(int ac, char *av[]) {
       if (rv != sizeof(pnt))
         continue;
 
+      uint8_t x = pnt[0], y = pnt[1];
+
+      // output to haptic driver pipe
+      uint8_t output[2];
+      output[0] = 0; // real-time playback mode
       // offset 15
       // + row size * number of rows (y)
       // + distance into row (x)
-      uint8_t x = pnt[0], y = pnt[1];
-      // printf("0", global[15 + y * PGM_W + x]);
-
-      uint8_t output[2];
-      output[0] = 0;
-      output[1] = global[15 + y * PGM_W + x];
+      output[1] = global[15 + y * PGM_W + x]; // 0-255 strength of vibration
       write(fd_out, output, 2);
     }
     syslog(LOG_INFO, "child: unreachable!\n");
