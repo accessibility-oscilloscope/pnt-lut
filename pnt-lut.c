@@ -25,11 +25,10 @@
 
 int better_read(int fd, void *buf, int amount) {
   int amt_read = 0;
-  int last_read = 0;
   char *charbuf = (char *)buf;
 
   while (amt_read < amount) {
-    last_read = read(fd, charbuf + amt_read, amount - amt_read);
+    int last_read = read(fd, charbuf + amt_read, amount - amt_read);
     amt_read += last_read;
   }
 
