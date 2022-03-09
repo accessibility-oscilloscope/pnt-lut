@@ -1,11 +1,13 @@
-BIN = pnt-lut
-SRCS = $(wildcard *.c)
-
 CFLAGS += -Wall -Wextra -Werror -pedantic -std=gnu99 -g
 
-$(BIN): $(SRCS)
+all: pnt-lut test
+
+pnt-lut: pnt-lut.c
 	$(CC) $^ $(CFLAGS) -o $@
 
-.PHONY: clean
+test: test.c
+	$(CC) $^ $(CFLAGS) -o $@
+
+.PHONY: clean all
 clean:
 	rm -f $(BIN)
