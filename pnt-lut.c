@@ -97,7 +97,12 @@ int main(int ac, char *av[]) {
       // offset 15
       // + row size * number of rows (y)
       // + distance into row (x)
-      output[1] = global[15 + (int)pgm_y * PGM_W + (int)pgm_x]; // 0-255 strength of vibration
+      if (tablet_x == 0 && tablet_y == 0) { // pen lifted off the tablet
+        output[1] = 0;
+      }
+      else {
+        output[1] = global[15 + (int)pgm_y * PGM_W + (int)pgm_x]; // 0-255 strength of vibration
+      }
       write(fd_out, output, 2);
     }
     syslog(LOG_INFO, "child: unreachable!\n");
