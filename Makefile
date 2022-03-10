@@ -10,4 +10,4 @@ test: test.c
 
 .PHONY: clean all
 clean:
-	rm -f $(BIN)
+	rm -f pnt-lut test

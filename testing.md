@@ -6,3 +6,6 @@
 
 will generate random tablet coordinates, feed to pnt-lut, and print info.
 decent smoke test.
+
+note: added delay between sending each coordinate to mimic issue we had with
+ascii converter

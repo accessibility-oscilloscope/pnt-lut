@@ -68,7 +68,7 @@ int main(int ac, char *av[]) {
     const int fd_out = open(output_fifo, O_WRONLY);
     int pnt[2];
     for (;;) {
-      const int rv = read(fd, pnt, sizeof(pnt));
+      const int rv = better_read(fd, pnt, sizeof(pnt));
       if (rv != sizeof(pnt)) {
         if (rv != 0) {
           syslog(LOG_INFO, "point read failed, rv=%d\n", rv);
