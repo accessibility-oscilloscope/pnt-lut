@@ -78,9 +78,9 @@ int main(int ac, char *av[]) {
 
       int tablet_x = pnt[0], tablet_y = pnt[1];
 
-      float pgm_x = PGM_W - tablet_y*PGM_W/TABLET_MAX_Y;
-
-      float pgm_y = tablet_x*PGM_H/TABLET_MAX_X;
+      // floats avoid integer math problems (overflow or truncation)
+      float pgm_x = PGM_W - tablet_y * PGM_W / TABLET_MAX_Y;
+      float pgm_y = tablet_x * PGM_H / TABLET_MAX_X;
 
 #ifdef DEBUG
       syslog(LOG_DEBUG, "tablet x is %d", tablet_x);
@@ -95,11 +95,13 @@ int main(int ac, char *av[]) {
       // offset 15
       // + row size * number of rows (y)
       // + distance into row (x)
-      if (tablet_x == 0 && tablet_y == 0) { // pen lifted off the tablet
+      if (tablet_x == 0 && tablet_y == 0) {
+        // pen lifted off the tablet, disable output
         output[1] = 0;
-      }
-      else {
-        output[1] = global[15 + (int)pgm_y * PGM_W + (int)pgm_x]; // 0-255 strength of vibration
+      } else {
+        // 0-255 strength of vibration
+        // cast floats to ints here to use as indexes
+        output[1] = global[15 + (int)pgm_y * PGM_W + (int)pgm_x];
       }
 #ifdef DEBUG
       syslog(LOG_DEBUG, "output is %x", output[1]);
