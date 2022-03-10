@@ -23,6 +23,9 @@
 #define PGM_H 480
 #define PGM_SIZE ((PGM_W) * (PGM_H)) + 15
 
+#define TABLET_MAX_X 21600
+#define TABLET_MAX_Y 13500
+
 int better_read(int fd, void *buf, int amount) {
   int amt_read = 0;
   char *charbuf = (char *)buf;
@@ -37,6 +40,7 @@ int better_read(int fd, void *buf, int amount) {
 
 int main(int ac, char *av[]) {
   assert(ac == 4 && "usage: ./pnt-lut $PGM_FIFO $PNT_FIFO $OUTPUT_FIFO");
+  openlog(NULL, LOG_PERROR, LOG_USER);
 
   const char *pgm_fifo = av[1];
   const char *pnt_fifo = av[2];
@@ -62,13 +66,28 @@ int main(int ac, char *av[]) {
     mkfifo(pnt_fifo, 0666);
     const int fd = open(pnt_fifo, O_RDONLY);
     const int fd_out = open(output_fifo, O_WRONLY);
-    uint8_t pnt[2];
+    int pnt[2];
     for (;;) {
       const int rv = read(fd, pnt, sizeof(pnt));
-      if (rv != sizeof(pnt))
+      if (rv != sizeof(pnt)) {
+        if (rv != 0) {
+          syslog(LOG_INFO, "point read failed, rv=%d\n", rv);
+        }
         continue;
+      }
 
-      uint8_t x = pnt[0], y = pnt[1];
+      int tablet_x = pnt[0], tablet_y = pnt[1];
+
+      // floats avoid integer math problems (overflow or truncation)
+      float pgm_x = PGM_W - tablet_y * PGM_W / TABLET_MAX_Y;
+      float pgm_y = tablet_x * PGM_H / TABLET_MAX_X;
+
+#ifdef DEBUG
+      syslog(LOG_DEBUG, "tablet x is %d", tablet_x);
+      syslog(LOG_DEBUG, "tablet y is %d", tablet_y);
+      syslog(LOG_DEBUG, "calculated pgm_x is %f", pgm_x);
+      syslog(LOG_DEBUG, "calculated pgm_y is %f", pgm_y);
+#endif
 
       // output to haptic driver pipe
       uint8_t output[2];
@@ -76,7 +95,17 @@ int main(int ac, char *av[]) {
       // offset 15
       // + row size * number of rows (y)
       // + distance into row (x)
-      output[1] = global[15 + y * PGM_W + x]; // 0-255 strength of vibration
+      if (tablet_x == 0 && tablet_y == 0) {
+        // pen lifted off the tablet, disable output
+        output[1] = 0;
+      } else {
+        // 0-255 strength of vibration
+        // cast floats to ints here to use as indexes
+        output[1] = global[15 + (int)pgm_y * PGM_W + (int)pgm_x];
+      }
+#ifdef DEBUG
+      syslog(LOG_DEBUG, "output is %x", output[1]);
+#endif
       write(fd_out, output, 2);
     }
     syslog(LOG_INFO, "child: unreachable!\n");
