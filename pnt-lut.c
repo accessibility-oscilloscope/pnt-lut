@@ -26,8 +26,6 @@
 #define TABLET_MAX_X 21600
 #define TABLET_MAX_Y 13500
 
-#define DEBUG 1 // printing x-y coordinates
-
 int better_read(int fd, void *buf, int amount) {
   int amt_read = 0;
   char *charbuf = (char *)buf;
@@ -84,11 +82,11 @@ int main(int ac, char *av[]) {
 
       float pgm_y = tablet_x*PGM_H/TABLET_MAX_X;
 
-#if DEBUG
-      syslog(LOG_INFO, "tablet x is %d", tablet_x);
-      syslog(LOG_INFO, "tablet y is %d", tablet_y);
-      syslog(LOG_INFO, "calculated pgm_x is %f", pgm_x);
-      syslog(LOG_INFO, "calculated pgm_y is %f", pgm_y);
+#ifdef DEBUG
+      syslog(LOG_DEBUG, "tablet x is %d", tablet_x);
+      syslog(LOG_DEBUG, "tablet y is %d", tablet_y);
+      syslog(LOG_DEBUG, "calculated pgm_x is %f", pgm_x);
+      syslog(LOG_DEBUG, "calculated pgm_y is %f", pgm_y);
 #endif
 
       // output to haptic driver pipe
@@ -103,6 +101,9 @@ int main(int ac, char *av[]) {
       else {
         output[1] = global[15 + (int)pgm_y * PGM_W + (int)pgm_x]; // 0-255 strength of vibration
       }
+#ifdef DEBUG
+      syslog(LOG_DEBUG, "output is %x", output[1]);
+#endif
       write(fd_out, output, 2);
     }
     syslog(LOG_INFO, "child: unreachable!\n");
