@@ -1,6 +1,6 @@
 - set DEBUG flag to 1
 - make
-- run `./pnt-lut pgm pnt /dev/stdout | hd -C`
+- run `./pnt-lut pgm pnt /dev/stdout | hd`
 - open another shell (or run previous command in background) and run `./test
   pnt`
 

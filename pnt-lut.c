@@ -2,7 +2,6 @@
  * implementation of IPC using forks with global shared memory.
  */
 
-#define _GNU_SOURCE
 #include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -40,13 +39,8 @@ int better_read(int fd, void *buf, int amount) {
 }
 
 int main(int ac, char *av[]) {
-<<<<<<< Updated upstream
   assert(ac == 4 && "usage: ./pnt-lut $PGM_FIFO $PNT_FIFO $OUTPUT_FIFO");
   openlog(NULL, LOG_PERROR, LOG_USER);
-=======
-  assert(ac == 3 && "usage: ./gradient $PGM_FIFO $PNT_FIFO");
-  openlog("pnt-lut", 0, LOG_USER);
->>>>>>> Stashed changes
 
   const char *pgm_fifo = av[1];
   const char *pnt_fifo = av[2];
@@ -60,9 +54,11 @@ int main(int ac, char *av[]) {
     // parent process
     const int fd = open(pgm_fifo, O_RDONLY);
     if (fd == -1) {
-      syslog(LOG_ERR, "opening fifo %s failed (%m)", pgm_fifo);
+      syslog(LOG_ERR, "opening fifo %s failed", pgm_fifo);
       exit(-1);
     }
+    syslog(LOG_ERR, "pnt-lut: parent initialized");
+
     for (;;) {
       int len_read;
       len_read = better_read(fd, global, PGM_SIZE);
@@ -72,18 +68,19 @@ int main(int ac, char *av[]) {
     syslog(LOG_INFO, "parent: unreachable!\n");
   } else {
     // child process
-<<<<<<< Updated upstream
-    mkfifo(pnt_fifo, 0666);
     const int fd = open(pnt_fifo, O_RDONLY);
     const int fd_out = open(output_fifo, O_WRONLY);
-    int pnt[2];
-=======
-    const FILE *fd = fopen(pnt_fifo, "ro");
-    if (!fd) {
-      syslog(LOG_ERR, "opening fifo %s failed (%m)", pnt_fifo);
+    if (fd == -1) {
+      syslog(LOG_ERR, "opening fifo %s failed", pgm_fifo);
       exit(-1);
     }
->>>>>>> Stashed changes
+    if (fd_out == -1) {
+      syslog(LOG_ERR, "opening fifo %s failed", output_fifo);
+      exit(-1);
+    }
+    syslog(LOG_ERR, "pnt-lut: child initialized");
+
+    int pnt[2];
     for (;;) {
       const int rv = better_read(fd, pnt, sizeof(pnt));
       if (rv != sizeof(pnt)) {
