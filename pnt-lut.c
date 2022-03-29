@@ -19,8 +19,8 @@
 // [signal-compiler.c](https://github.com/accessibility-oscilloscope/signal-compiler/blob/main/signal-compiler.c)
 // PGM_W * PGM_H + (15 byte header)
 // verify with `ls -l test.pgm`
-#define PGM_W 300
-#define PGM_H 480
+#define PGM_W 480
+#define PGM_H 300
 #define PGM_SIZE ((PGM_W) * (PGM_H)) + 15
 
 #define TABLET_MAX_X 21600
@@ -62,7 +62,18 @@ int main(int ac, char *av[]) {
     for (;;) {
       int len_read;
       len_read = better_read(fd, global, PGM_SIZE);
-      syslog(LOG_INFO, "read PGM %d", len_read);
+      unsigned int width, height, maxval;
+      sscanf((char *)global, "P5 %u %u %u", &width, &height, &maxval);
+      syslog(LOG_INFO, "read PGM %d: width=%u, height=%u, maxval=%u", len_read,
+             width, height, maxval);
+      if (width != PGM_W || height != PGM_H) {
+        // TODO: bail if bad? would need two arrays or to dynamically
+        // read+discard sscanf or fgets could do it but it's ... not ideal
+        syslog(LOG_ERR,
+               "PGM INVALID! width=%u, height=%u, expected width=%u, "
+               "height=%u. Lookups will be using invalid data!",
+               width, height, PGM_W, PGM_H);
+      }
     }
     close(fd);
     syslog(LOG_INFO, "parent: unreachable!\n");
@@ -93,8 +104,8 @@ int main(int ac, char *av[]) {
       int tablet_x = pnt[0], tablet_y = pnt[1];
 
       // floats avoid integer math problems (overflow or truncation)
-      float pgm_x = PGM_W - tablet_y * PGM_W / TABLET_MAX_Y;
-      float pgm_y = tablet_x * PGM_H / TABLET_MAX_X;
+      float pgm_x = tablet_x * PGM_W / TABLET_MAX_X;
+      float pgm_y = tablet_y * PGM_H / TABLET_MAX_Y;
 
 #ifdef DEBUG
       syslog(LOG_DEBUG, "tablet x is %d", tablet_x);
@@ -118,7 +129,7 @@ int main(int ac, char *av[]) {
         output[1] = global[15 + (int)pgm_y * PGM_W + (int)pgm_x];
       }
 #ifdef DEBUG
-      syslog(LOG_DEBUG, "output is %x", output[1]);
+      syslog(LOG_DEBUG, "output is 0x%x", output[1]);
 #endif
       write(fd_out, output, 2);
     }
