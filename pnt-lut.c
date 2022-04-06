@@ -43,7 +43,9 @@ int better_read(int fd, void *buf, int amount) {
 
 void signal_handler(int signum)
 {
+  if (signum == 2) {
     sig_rcvd = 1;
+  }
 }
 
 int main(int ac, char *av[]) {
@@ -145,7 +147,7 @@ int main(int ac, char *av[]) {
       // write image to file if SIGINT is detected
       if (sig_rcvd) {
         const int fd1 = open("image.txt", O_WRONLY);
-        write(fd1, output, 2);
+        write(fd1, global, PGM_SIZE);
         close(fd1);
         sig_rcvd = 0;
       }
