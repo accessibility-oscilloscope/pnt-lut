@@ -26,6 +26,9 @@
 #define TABLET_MAX_X 21600
 #define TABLET_MAX_Y 13500
 
+// flag to write image to file
+static volatile sig_atomic_t sig_rcvd = 0;
+
 int better_read(int fd, void *buf, int amount) {
   int amt_read = 0;
   char *charbuf = (char *)buf;
@@ -36,6 +39,11 @@ int better_read(int fd, void *buf, int amount) {
   }
 
   return amt_read;
+}
+
+void signal_handler(int signum)
+{
+    sig_rcvd = 1;
 }
 
 int main(int ac, char *av[]) {
@@ -58,6 +66,7 @@ int main(int ac, char *av[]) {
       exit(-1);
     }
     syslog(LOG_ERR, "pnt-lut: parent initialized");
+
 
     for (;;) {
       int len_read;
@@ -132,6 +141,14 @@ int main(int ac, char *av[]) {
       syslog(LOG_DEBUG, "output is 0x%x", output[1]);
 #endif
       write(fd_out, output, 2);
+      
+      // write image to file if SIGINT is detected
+      if (sig_rcvd) {
+        const int fd1 = open("image.txt", O_WRONLY);
+        write(fd1, output, 2);
+        close(fd1);
+        sig_rcvd = 0;
+      }
     }
     syslog(LOG_INFO, "child: unreachable!\n");
     close(fd);
